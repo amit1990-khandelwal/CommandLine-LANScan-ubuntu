@@ -1,0 +1,46 @@
+#!/bin/bash
+#start
+#Usage: starting the scan on the local area network
+cd list
+rm -f *
+cd ..
+
+read ip
+nmap -p445 $ip > .resultScan
+
+grep -B 2 open .resultScan > .resultOpenScan
+flag=`echo $?`
+
+if [ $flag -eq 1 ]
+then 
+	echo "no ip's is working at present .."
+else
+	echo "you are available with these ip's to open"
+	grep -o 172.* .resultOpenScan
+	grep -o 172.* .resultOpenScan > .resultEnd
+	grep -n 172.* .resultEnd > .resultEndNum
+	count=`grep -c 172.* .resultEnd`
+	echo $count
+	i=1
+	while [ $i -le $count ]
+	do 
+		grep  $i:172.16.2*.* .resultEndNum > .individualIP
+		ExtractIP=`grep -o 172.* .individualIP`
+		cd list
+		echo "#!/bin/bash" > $ExtractIP
+		echo "#$ExtractIP" >> $ExtractIP
+		echo "nautilus smb://$ExtractIP/" >> $ExtractIP
+		chmod 744 $ExtractIP
+		echo "#END" >> $ExtractIP
+		shc -v -r -T -f $ExtractIP 
+		rm -f *.c
+		rm -f $ExtractIP
+		mv $ExtractIP.x $ExtractIP
+		cd ..
+		let i=$i+1
+	done
+	nautilus list
+fi
+#END
+
+
